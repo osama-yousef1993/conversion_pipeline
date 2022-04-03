@@ -1,0 +1,5 @@
+apache-beam[gcp]==2.37.0
+google-cloud-firestore==2.4.0
+
+# for cloud function
+google-api-python-client==2.42.0

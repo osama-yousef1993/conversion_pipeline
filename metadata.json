@@ -1,0 +1,32 @@
+{
+    "name": "Firestore pipelines Template",
+    "description": "Insert data from conversions files to Firestore",
+    "parameters": [
+      {
+        "name": "input",
+        "label": "Input file to download",
+        "helpText": "Name of the input file from GCS",
+        "regexes": [
+            "^gs:\\/\\/[^\\n\\r]+$"
+        ]
+      },
+      {
+        "name": "collection_name",
+        "label": "collection_name to connect with before insert data output table name.",
+        "helpText": "collection_name of firestore",
+        "isOptional": true
+      },
+      {
+        "name": "project_id",
+        "label": "project_id to connect with before insert data output table name.",
+        "helpText": "project_id of firestore",
+        "isOptional": true
+      },
+      {
+        "name": "service_account",
+        "label": "service_account to connect with before insert data output table name.",
+        "helpText": "service_account of firestore",
+        "isOptional": true
+      }
+    ]
+  }

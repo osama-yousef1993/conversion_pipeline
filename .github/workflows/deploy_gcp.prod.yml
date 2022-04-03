@@ -1,0 +1,51 @@
+name: Deploy Cloud Function to GCP - prod
+
+on:
+  push:
+    branches:
+      - release
+
+concurrency:
+    group: release-pipeline-${{ github.head_ref }}
+    cancel-in-progress: true
+
+env:
+  PROJECT_ID: ${{ secrets.GKE_PROJECT_PROD }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: 'release'
+
+      - id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v0'
+        with:
+          credentials_json: '${{ secrets.GCP_DEFAULT_ACCOUNT_KEY_PROD}}'
+
+      - name: Deploy Cloud Function
+        id: deploy
+        uses: google-github-actions/deploy-cloud-functions@main
+        with:
+          name:  conversions_data_pipelines
+          runtime: python39
+          project_id: ${{ secrets.GKE_PROJECT_PROD }}
+          entry_point:  conversions_data_pipelines
+          event_trigger_type: google.storage.object.finalize
+          event_trigger_resource: projects/${{ secrets.GKE_PROJECT_PROD }}/buckets/at_datalake_prod
+          secret_environment_variables: 'CONVERSIONS_REPORT_COLLECTION_NAME=projects/${{ secrets.GKE_PROJECT_PROD }}/secrets/CONVERSIONS_REPORT_COLLECTION_NAME, GCP_PROJECT_ID=projects/${{ secrets.GKE_PROJECT_PROD }}/secrets/GCP_PROJECT_ID, DEFAULT_SERVICE_ACCOUNT_EMAIL=projects/${{ secrets.GKE_PROJECT_PROD }}/secrets/DEFAULT_SERVICE_ACCOUNT_EMAIL'
+          timeout: 540s                                              
+
+      - name: Report Status
+        if: always()
+        uses: ravsamhq/notify-slack-action@master
+        with:
+          status: ${{ job.status }}
+          notify_when: 'success,failure,warnings'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
